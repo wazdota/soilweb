@@ -8,6 +8,13 @@
     <el-form-item prop="checkPass">
       <el-input type="password" v-model="ruleForm2.checkPass" auto-complete="off" placeholder="密码" clearable></el-input>
     </el-form-item>
+    <el-form-item>
+      <el-radio-group v-model="ruleForm2.role">
+        <el-radio label="user">用户</el-radio>
+        <el-radio label="admin">管理员</el-radio>
+        <el-radio label="super">超级管理员</el-radio>
+      </el-radio-group>
+    </el-form-item>
     <el-form-item style="width:100%;">
       <el-button type="primary" style="width:100%;" @click.native.prevent="handleSubmit2" :loading="logining">登录</el-button>
       <el-button type="text" style="width:100%;" @click.native.prevent="handleRegister">>>前往注册</el-button>
@@ -46,8 +53,9 @@ export default {
       logining: false,
       registerLoading:false,
       ruleForm2: {
-        account: 'admin',
-        checkPass: '123456'
+        account: '',
+        checkPass: '',
+        role: 'user'
       },
       rules2: {
         account: [
@@ -105,37 +113,128 @@ export default {
       var _this = this
       this.$refs.ruleForm2.validate((valid) => {
           if (valid) {
-            //_this.$router.replace('/table');
             this.logining = true;
-            //NProgress.start();
-            var params = new URLSearchParams();
-            params.append('username', this.ruleForm2.account);
-            params.append('password', this.ruleForm2.checkPass);
-
-            //var loginParams = { username: this.ruleForm2.account, password: this.ruleForm2.checkPass };
-            this.$axios.post('/user',{ username: this.ruleForm2.account, password: this.ruleForm2.checkPass }).then(response => {
-              this.logining = false;
-              //NProgress.done();
-              let { message, code, value } = response.data;
-              if (code !== 200) {
-                this.$message({
-                  message: message,
-                  type: 'error'
-                });
-              } else {
-                localStorage.setItem('user', JSON.stringify(value));
-                this.$router.push({ path: '/sensorList'});
+            if(this.ruleForm2.role == 'user'){
+              this.$axios({
+                method:"post",
+                url:"/user/login",
+                headers:{
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                data:{
+                  username:this.ruleForm2.account,
+                  password:this.ruleForm2.checkPass
+                },
+                transformRequest: [function (data) {
+                  let ret = ''
+                  for (let it in data) {
+                    ret += encodeURIComponent(it) + '=' + encodeURIComponent(data[it]) + '&'
+                  }
+                  return ret
+                }],
+              }).then(response => {
+                this.logining = false;
+                //NProgress.done();
+                let { message, code, value } = response.data;
+                if (code !== 200) {
+                  this.$message({
+                    message: message,
+                    type: 'error'
+                  });
+                } else {
+                  localStorage.setItem('Authorization', value);
+                  sessionStorage.removeItem('Authorization');
+                  this.$router.push({ path: '/homePage'});
+                }
+              }).catch(() => {
+								  this.logining = false;
+								  this.$message({
+									  message: "请求超时",
+										type: 'error'
+								});
+              });
             }
-            });
-          } else {
-            this.logining = false;
-            this.$message({
-                  message: "请求超时",
-                  type: 'error'
-            });
-            console.log('error submit!!');
-            return false;
-          }
+            else if(this.ruleForm2.role == 'admin'){
+               this.$axios({
+                method:"post",
+                url:"/admin/login",
+                headers:{
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                data:{
+                  username:this.ruleForm2.account,
+                  password:this.ruleForm2.checkPass
+                },
+                transformRequest: [function (data) {
+                  let ret = ''
+                  for (let it in data) {
+                    ret += encodeURIComponent(it) + '=' + encodeURIComponent(data[it]) + '&'
+                  }
+                  return ret
+                }],
+              }).then(response => {
+                this.logining = false;
+                //NProgress.done();
+                let { message, code, value } = response.data;
+                if (code !== 200) {
+                  this.$message({
+                    message: message,
+                    type: 'error'
+                  });
+                } else {
+                  sessionStorage.setItem('Authorization', value);
+                  localStorage.removeItem('Authorization');
+                  this.$router.push({ path: '/adminHomePage'});
+                }
+              }).catch(() => {
+								  this.logining = false;
+								  this.$message({
+									  message: "请求超时",
+										type: 'error'
+								});
+              });
+            }
+            else if(this.ruleForm2.role == 'super'){
+               this.$axios({
+                method:"post",
+                url:"/super/login",
+                headers:{
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                data:{
+                  username:this.ruleForm2.account,
+                  password:this.ruleForm2.checkPass
+                },
+                transformRequest: [function (data) {
+                  let ret = ''
+                  for (let it in data) {
+                    ret += encodeURIComponent(it) + '=' + encodeURIComponent(data[it]) + '&'
+                  }
+                  return ret
+                }],
+              }).then(response => {
+                this.logining = false;
+                //NProgress.done();
+                let { message, code, value } = response.data;
+                if (code !== 200) {
+                  this.$message({
+                    message: message,
+                    type: 'error'
+                  });
+                } else {
+                  sessionStorage.setItem('Authorization', value);
+                  localStorage.removeItem('Authorization');
+                  this.$router.push({ path: '/adminTable'});
+                }
+              }).catch(() => {
+								  this.logining = false;
+								  this.$message({
+									  message: "请求超时",
+										type: 'error'
+								});
+              });
+            }
+          } 
       })
     },
     handleRegister(){
@@ -155,7 +254,7 @@ export default {
             //NProgress.start();
             let para = Object.assign({id:null,count:0}, this.registerForm);
 
-            this.$axios.post('/add_user',para).then(response => {
+            this.$axios.post('/v1/user',para).then(response => {
               this.registerLoading = false;
               //NProgress.done();
               let { message, code} = response.data;
@@ -182,7 +281,7 @@ export default {
 }
 
 </script>
-<style >
+<style scoped lang="scss">
   .login-container {
     -webkit-border-radius: 5px;
     border-radius: 5px;

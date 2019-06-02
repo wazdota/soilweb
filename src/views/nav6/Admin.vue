@@ -1,19 +1,11 @@
 <template>
     <div>
-        <el-row><el-col :span="24" class="toolbar"><div class="grid-content bg-purple-dark">用户信息</div></el-col></el-row>
+        <el-row><el-col :span="24" class="toolbar"><div class="grid-content bg-purple-dark">管理员信息</div></el-col></el-row>
         <el-row>
             <el-col :span="2"><div class="grid-content bg-purple">用户名:</div></el-col>
             <el-col :span="2"><div class="grid-content bg-purple-light">{{user.name}}</div></el-col>
         </el-row>
-        <el-row>
-            <el-col :span="2"><div class="grid-content bg-purple">已有测点数:</div></el-col>
-            <el-col :span="2"><div class="grid-content bg-purple-light">{{user.count}}</div></el-col>
-        </el-row>
-        <el-row>
-            <el-col :span="2"><div class="grid-content bg-purple">测点上限:</div></el-col>
-            <el-col :span="2"><div class="grid-content bg-purple-light">{{user.max}}</div></el-col>
-        </el-row>
-        <el-row>
+         <el-row>
           <el-button type="primary" icon="el-icon-edit" circle @click="handleEdit"></el-button>
         </el-row>
 
@@ -51,7 +43,7 @@ export default {
     },
     methods:{
         getUser(){
-            this.$axios.get('/v1/user').then(response => {
+            this.$axios.get('/v1/admin').then(response => {
 				      let{message, code, value} = response.data;
 				      if(code != 200) {
 					      this.$message({
@@ -72,7 +64,7 @@ export default {
               if(valid){
                 this.$confirm('确认提交吗？', '提示', {}).then(() => {
 							    this.editLoading = true;
-							    this.$axios.put('/v1/user',{name:this.editForm.name}).then((res) => {
+							    this.$axios.put('/v1/admin',{name:this.editForm.name}).then((res) => {
 								    this.editLoading = false;
 								    let{code,message} = res.data;
 								    if(code == 201){

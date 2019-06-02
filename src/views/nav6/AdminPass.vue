@@ -55,7 +55,7 @@
         this.$refs.ruleForm.validate((valid) => {
           if (valid) {
             this.submitLoading = true;
-            this.$axios.put('/v1/user',{password: this.ruleForm.pass}).then(response => {
+            this.$axios.put('/v1/admin',{password: this.ruleForm.pass}).then(response => {
                 this.submitLoading = false;
                 let{code,message} = response.data;
                 if(code == 201){

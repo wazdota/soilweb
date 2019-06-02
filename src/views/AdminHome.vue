@@ -22,11 +22,11 @@
 			<aside :class="collapsed?'menu-collapsed':'menu-expanded'">
 				<!--导航菜单-->
 				<el-menu :default-active="$route.path" class="el-menu-vertical-demo" @open="handleopen" @close="handleclose" @select="handleselect"
-					 unique-opened router :collapse="collapsed">
-					<template v-for="(item,index) in $router.options.routes" v-if="!item.hidden&&!item.admin&&!item.super">
+					 unique-opened router v-show="!collapsed">
+					<template v-for="(item,index) in $router.options.routes" v-if="!item.hidden&&item.admin">
 						<el-submenu :index="index+''" v-if="!item.leaf">
 							<template slot="title"><i :class="item.iconCls"></i><span slot="title">{{item.name}}</span></template>
-							<el-menu-item v-for="child in item.children" :index="child.path" :key="child.path" v-if="!child.hidden&&!item.admin&&!item.super">{{child.name}}</el-menu-item>
+							<el-menu-item v-for="child in item.children" :index="child.path" :key="child.path" v-if="!child.hidden&&item.admin">{{child.name}}</el-menu-item>
 						</el-submenu>
 						<el-menu-item v-if="item.leaf&&item.children.length>0" :index="item.children[0].path"><i :class="item.iconCls"></i>{{item.children[0].name}}</el-menu-item>
 					</template>
@@ -58,12 +58,12 @@
 		data() {
 			return {
 				collapsed:false,
-				sysUserName: '',
+				sysUserName: '空',
 			}
 		},
 		methods: {
 			goHome() {
-				this.$router.push('/homePage');
+				this.$router.push('/adminHomePage');
 			},
 			onSubmit() {
 				console.log('submit!');
@@ -82,7 +82,8 @@
 				this.$confirm('确认退出吗?', '提示', {
 					//type: 'warning'
 				}).then(() => {
-					localStorage.removeItem('Authorization');
+					sessionStorage.removeItem('Authorization');
+					sessionStorage.removeItem('user');
 					_this.$router.push('/login');
 				}).catch(() => {
 
@@ -95,7 +96,7 @@
 			}
 		},
 		mounted() {
-			this.$axios.get('/v1/user').then(response => {
+			this.$axios.get('/v1/admin').then(response => {
 				let{message, code, value} = response.data;
 				if(code != 200) {
 					this.$message({
@@ -143,6 +144,7 @@
 				}
 			}
 			.logo {
+				//width:230px;
 				height:60px;
 				font-size: 22px;
 				padding-left:20px;
@@ -175,6 +177,7 @@
 		}
 		.main {
 			display: flex;
+			// background: #324057;
 			position: absolute;
 			top: 60px;
 			bottom: 0px;
@@ -182,6 +185,9 @@
 			aside {
 				flex:0 0 230px;
 				width: 230px;
+				// position: absolute;
+				// top: 0px;
+				// bottom: 0px;
 				.el-menu{
 					height: 100%;
 				}
@@ -210,10 +216,17 @@
 				width: 230px;
 			}
 			.content-container {
+				// background: #f1f2f7;
 				flex:1;
+				// position: absolute;
+				// right: 0px;
+				// top: 0px;
+				// bottom: 0px;
+				// left: 230px;
 				overflow-y: scroll;
 				padding: 20px;
 				.breadcrumb-container {
+					//margin-bottom: 15px;
 					.title {
 						width: 200px;
 						float: left;

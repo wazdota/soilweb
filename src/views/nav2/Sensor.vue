@@ -19,6 +19,12 @@
         <el-row><el-col :span="24" class="toolbar"><div class="grid-content bg-purple-dark">趋势图</div></el-col></el-row>
         <el-row><div id="tempTrend" ref="tempTrend" style="width: 600px; height: 300px;"></div></el-row>
         <el-row><div id="humTrend" ref="humTrend" style="width: 600px; height: 300px;"></div></el-row>
+        <el-row><el-collapse v-model="acName" @change="handleChange" accordion>
+            <el-collapse-item title="更多数据" name="1">
+                <el-col><div id="avgTempTrend" ref="avgTempTrend" style="width: 600px; height: 300px;"></div></el-col>
+                <el-col><div id="avgHumTrend" ref="avgHumTrend" style="width: 600px; height: 300px;"></div></el-col>
+            </el-collapse-item>
+        </el-collapse></el-row>
 
         <el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false">
 			<el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
@@ -62,15 +68,21 @@
     export default {
         data(){
             return{
+                acName:'',
                 sensorId:0,
                 sensorName:'',
                 sensorTemp:0,
                 sensorHum:0,
                 tempData:[],
                 humData:[],
+                avgTempDatad:[],
+                avgTempDatan:[],
+                avgHumData:[],
                 sensor:null,
                 tempTrend:null,
                 humTrend:null,
+                avgTmpTrend:null,
+                avgHumTrend:null,
                 activeNames:null,
                 editFormVisible:false,
                 editLoading:false,
@@ -224,8 +236,154 @@
                     }]
                 })
             },
+            drawAvgTemp(){
+                var dateTime=new Date();
+                dateTime=dateTime.setDate(dateTime.getDate()-7);
+                dateTime=new Date(dateTime);
+                this.avgTempTrend.setOption({
+                    title:{
+                        text:'平均温度图',
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        //formatter: function (params) {
+                        //params = params[0];
+                        //var date = new Date(params.name);
+                        //return date.getFullYear()+ '/' + (date.getMonth() + 1) + '/' + date.getDate() + ' : ' + params.value[1] ;
+                        //},
+                        //axisPointer: {
+                            //animation: false
+                        //}
+                    },
+                    legend: {
+                        data:['昼均温','夜均温']
+                    },
+                    xAxis:{
+                        type:'time',
+                        splitLine:{
+                            show:false
+                        }
+                    },
+                    yAxis:{
+                        type:'value',
+                        axisLabel: {
+                            formatter: function (val) {
+                            return val + '℃';
+                            }
+                        },
+                        boundaryGap: ['20%', '20%'],
+                        splitLine: {
+                            show: false
+                        }
+                    },
+                    dataZoom: [{
+                        type: 'inside',
+                        startValue: dateTime,
+                        end: 100
+                    }, {
+                        startValue: dateTime,
+                        end: 100,
+                        handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                        handleSize: '80%',
+                        handleStyle: {
+                            color: '#fff',
+                            shadowBlur: 3,
+                            shadowColor: 'rgba(0, 0, 0, 0.6)',
+                            shadowOffsetX: 2,
+                            shadowOffsetY: 2
+                        }
+                    }],
+                    series:[{
+                        name:'昼均温',
+                        type:'line',
+                        hoverAnimation: false,
+                        showSymbol: false,
+                        smooth: true,
+                        data:this.avgTempDatad
+                    },
+                    {
+                        name:'夜均温',
+                        type:'line',
+                        hoverAnimation: false,
+                        showSymbol: false,
+                        smooth: true,
+                        data:this.avgTempDatan
+                    }]
+                })
+            },
+            drawAvgHum(){
+                var dateTime=new Date();
+                dateTime=dateTime.setDate(dateTime.getDate()-7);
+                dateTime=new Date(dateTime);
+                this.avgHumTrend.setOption({
+                    title:{
+                        left:'center',
+                        text:'平均湿度图',
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        formatter: function (params) {
+                        params = params[0];
+                        var date = new Date(params.name);
+                        return date.getFullYear()+ '/' + (date.getMonth() + 1) + '/' + date.getDate() + ' : ' + params.value[1] + '%';
+                        },
+                        axisPointer: {
+                            animation: false
+                        }
+                    },
+                    grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+    },
+                    xAxis:{
+                        type:'time',
+                        splitLine:{
+                            show:false
+                        }
+                    },
+                    yAxis:{
+                        type:'value',
+                        axisLabel: {
+                            formatter: function (val) {
+                            return val + '%';
+                            }
+                        },
+                        boundaryGap: ['20%', '20%'],
+                        splitLine: {
+                            show: false
+                        }
+                    },
+                    dataZoom: [{
+                        type: 'inside',
+                        startValue: dateTime,
+                        end: 100
+                    }, {
+                        startValue: dateTime,
+                        end: 100,
+                        handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                        handleSize: '80%',
+                        handleStyle: {
+                            color: '#fff',
+                            shadowBlur: 3,
+                            shadowColor: 'rgba(0, 0, 0, 0.6)',
+                            shadowOffsetX: 2,
+                            shadowOffsetY: 2
+                        }
+                    }],
+                    series:[{
+                        name:'avgHum',
+                        type:'line',
+                        hoverAnimation: false,
+                        showSymbol: false,
+                        smooth: true,
+                        data:this.avgHumData
+                    }]
+                })
+            },
             getSensor(){
-                this.$axios.get('/sensor',{params:{id:this.sensorId}}).then(response => {
+                this.$axios.get('/v1/sensor',{params:{id:this.sensorId}}).then(response => {
                     this.sensor = response.data.value;
                     this.sensorId = this.sensor.id;
                     this.sensorName = this.sensor.name || '';
@@ -261,8 +419,8 @@
                 this.$refs.editForm.validate((valid) =>{
                     if(valid){
                         this.$confirm('确认提交吗？', '提示', {}).then(() => {
-							this.editLoading = true;
-							this.$axios.put('/sensor/'+this.sensor.id,{id:this.sensor.id,name:this.editForm.name,temp:null,hum:null,th:this.optionForm.th,tl:this.optionForm.tl,hh:this.optionForm.hh,hl:this.optionForm.hl,userId:this.sensor.userId,infoId:this.editForm.type.id}).then((res) => {
+                            this.editLoading = true;
+							this.$axios.put('/v1/sensor/'+this.sensor.id,{id:this.sensor.id,name:this.editForm.name,th:this.optionForm.th,tl:this.optionForm.tl,hh:this.optionForm.hh,hl:this.optionForm.hl,userId:this.sensor.userId,infoId:this.editForm.type.id}).then((res) => {
 								this.editLoading = false;
 								let{code,message} = res.data;
 								if(code == 201){
@@ -283,6 +441,14 @@
 						});
                     }
                 });
+            },
+            handleChange(val) {
+                if(val == '1'){
+                    //this.avgTempDatad=[];
+                    //this.avgTempDatan=[];
+                    //this.avgHumData=[];
+
+                }
             }
         },
         mounted(){
@@ -296,9 +462,11 @@
             }
             this.tempTrend = this.$echarts.init(document.getElementById('tempTrend'));
             this.humTrend = this.$echarts.init(document.getElementById('humTrend'));
+            this.avgTempTrend = this.$echarts.init(document.getElementById('avgTempTrend'));
+            this.avgHumTrend = this.$echarts.init(document.getElementById('avgHumTrend'));
             this.tempTrend.showLoading();
             this.humTrend.showLoading();
-            this.$axios.get('/histories', {params:{sensorId:this.sensorId}}).then((response) => {
+            this.$axios.get('/v1/histories', {params:{sensorId:this.sensorId}}).then((response) => {
                 let data = response.data.value;
                 for(var p in data){
                     let temp = {
@@ -322,10 +490,44 @@
                 this.drawTempChart();
                 this.humTrend.hideLoading();
                 this.drawHumChart();
+                
             }).catch(() => {
 
             });
-            this.$axios.get('/infos').then((response) => {
+            this.avgTempTrend.showLoading();
+            this.avgHumTrend.showLoading();
+            this.$axios.get('/v1/avg_temp', {params:{sensorId:this.sensorId}}).then(response => {
+                let data = response.data.value;
+                for(var p in data){
+                    let temp = {
+                        name: data[p].date,
+                        value: [
+                            data[p].date,
+                            data[p].temp
+                        ]
+                    };
+                    if(data[p].day==0) this.avgTempDatad.push(temp);
+                    else if(data[p].day==1) this.avgTempDatan.push(temp);
+                }
+                this.avgTempTrend.hideLoading();
+                this.drawAvgTemp();
+            });
+                    this.$axios.get('/v1/avg_hum', {params:{sensorId:this.sensorId}}).then(response => {
+                        let data = response.data.value;
+                        for(var p in data){
+                            let hum = {
+                                name: (data[p].date).substr(0,(data[p].date).length-9),
+                                value: [
+                                    (data[p].date).substr(0,(data[p].date).length-9),
+                                    data[p].hum
+                                ]
+                            };
+                            this.avgHumData.push(hum);
+                        }
+                        this.avgHumTrend.hideLoading();
+                        this.drawAvgHum();
+                    });
+            this.$axios.get('/v1/infos').then((response) => {
                 this.types = response.data.value;
             });
         }
